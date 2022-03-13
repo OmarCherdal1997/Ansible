@@ -1,6 +1,7 @@
 FROM ubuntu:20.04
 
-ADD apt-get update -q && \
-    apt-get install -y haproxy nginx
+RUN apt-get update -q && \
+    apt-get install -y haproxy nginx curl net-tools
 
-ENTRYPOINT ["sleep 1d"]
+CMD ["1d"]
+ENTRYPOINT [ "sleep" ]

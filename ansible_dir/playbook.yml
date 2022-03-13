@@ -2,10 +2,4 @@
   hosts: all
   become: true
   roles:
-  - node_exporter
-- name: Install Prometheus
-  hosts: monitoring
-  become: true
-  roles:
-  - prometheus
-  - grafana
+  - docker-swarm

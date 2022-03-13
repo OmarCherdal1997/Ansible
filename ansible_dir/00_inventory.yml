@@ -2,11 +2,5 @@ all:
   vars:
     ansible_python_interpreter: /usr/bin/python3
   hosts:
-    172.17.0.5:
-    172.17.0.4:
-    172.17.0.3:
-    172.17.0.2:
-  children:
-    monitoring:
-      hosts:
-        172.17.0.6:
+    192.168.56.110:
+    192.168.56.111:

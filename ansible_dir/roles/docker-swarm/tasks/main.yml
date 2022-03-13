@@ -1,2 +1,57 @@
 ---
 # tasks file for ansible_dir/roles/docker-swarm/
+- name: Install Pre-requisites
+  apt:
+    name: ca-certificates,curl,gnupg,lsb-release
+    state: latest
+    update_cache: yes
+- name: Add an Apt signing key, will not download if present
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+    keyring: /usr/share/keyrings/docker-archive-keyring.gpg
+
+- name: Add Docker stable repo
+  apt_repository:
+    repo: deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu   focal stable
+    state: present
+- name: Install Docker
+  apt:
+    name: "{{ item }}"
+    state: latest
+    update_cache: yes
+  loop  :
+    - docker-ce
+    - docker-ce-cli
+    - containerd.io
+    - python
+    - python3-pip
+- name: Install Ansible Docker Interpreter
+  pip:
+    name: docker-py 
+- name: Start & Enable Docker
+  service:
+    name: docker
+    state: started
+    enabled: yes
+- name: Add Vagrant to Docker Group
+  user:
+    name: vagrant
+    groups: docker
+    append: yes
+- name: Copy 
+  copy:
+    src: /home/omar/ansible/ansible_dir/docker
+    dest: /tmp/
+- name: Build First Test Images
+  docker_image:
+    name: myimage
+    build:
+      path: /tmp/docker
+    source: build
+- name: Create a data container
+  docker_container:
+    name: mydata
+    image: busybox
+    volumes:
+      - /data
