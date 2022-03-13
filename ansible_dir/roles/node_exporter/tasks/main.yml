@@ -1,0 +1,73 @@
+---
+# tasks file for node_exporter
+- name: Upgrade Packages
+  apt:
+    update_cache: yes
+    upgrade: yes
+- name: Verify If Node Exporter Exists 
+  stat: 
+   path: "{{ node_exporter_bin }}"
+  register: __check_node_exporter
+- name: Check NE Correct Version
+  shell: "cat /etc/systemd/system/node_exporter.service | grep Version | sed s/'.*Version '//g"
+  when: __check_node_exporter.stat.exists==false
+  changed_when: false
+  register: __node_exporter_version
+- name: Check
+  debug:
+    msg: '{{ __node_exporter_version }}'
+- name: Create NE User
+  user:
+    name: "{{ node_exporter_user }}"
+    state: present
+    system: yes
+    create_home: false
+    home: /
+    shell: /usr/sbin/nologin
+- name: create node exporter config dir
+  file:
+    path: "{{ node_exporter_dir_conf }}"
+    state: directory
+    owner: "{{ node_exporter_user }}"
+    group: "{{ node_exporter_group }}"
+- name: download and unzip node exporter if not exist
+  unarchive:
+    src: "https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz"
+    dest: /tmp/
+    remote_src: yes
+    validate_certs: no
+  when: __check_node_exporter.stat.exists==false
+- name: Copy Tar to Distination
+  copy:
+    src: "/tmp/node_exporter-{{ node_exporter_version }}.linux-amd64/node_exporter"
+    dest: "{{ node_exporter_bin }}"
+    owner: "{{ node_exporter_user }}"
+    group: "{{ node_exporter_group }}"
+    mode: '0744'
+    remote_src: yes
+  when: __check_node_exporter.stat.exists==false
+- name: clean
+  file:
+    path: /tmp/node_exporter-{{ node_exporter_version }}.linux-amd64/
+    state: absent
+  when: __check_node_exporter.stat.exists==false
+
+- name: config exporter service
+  template:
+    src: node_exporter.service.j2
+    dest: /etc/systemd/system/node_exporter.service
+    owner: root
+    group: root
+    mode: '0755'
+  notify: restart_node_exporter
+
+- meta: flush_handlers
+
+- name: service always started
+  systemd:
+    name: node_exporter
+    state: started
+    enabled: yes
+
+
+
