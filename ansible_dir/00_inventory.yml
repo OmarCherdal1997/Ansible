@@ -1,6 +1,10 @@
 all:
   vars:
     ansible_python_interpreter: /usr/bin/python3
-  hosts:
-    192.168.56.110:
-    192.168.56.111:
+  children:
+    managers:
+      hosts:
+        192.168.56.110:
+    workers:
+      hosts:
+        192.168.56.111:
