@@ -1,0 +1,48 @@
+---
+# tasks file for roles/build_docker_targets
+- name: install docker for python3
+  apt:
+      name: python3-docker
+      state: present
+
+- name: Start Target Containers
+  docker_container:
+    name: "{{ lookup('env', 'USER') | default('omar', True) }}-target-{{ item }}"
+    image: priximmo/buster-systemd-ssh
+    state: started
+    privileged: yes
+    published_ports: all
+    hostname: "{{ lookup('env', 'USER') | default('omar', True) }}-target-{{ item }}"
+    volumes:
+     - /srv/data:/srv/html
+     - /sys/fs/cgroup:/sys/fs/cgroup:ro
+  with_sequence: count=5
+- name: Add Containers to Docker group
+  add_host:
+    name:  "{{ lookup('env', 'USER') | default('omar', True) }}-target-{{ item }}"
+    ansible_connection: docker
+    groups: docker
+  with_sequence: count=5
+# - name: Create omar user in Each Container
+#   raw: useradd -m -p sa3tHJ3/KuYvI --shell /bin/bash {{ lookup('env', 'USER') | default('omar', True) }}
+#   become: yes
+#   failed_when: false
+#   delegate_to: "{{ item }}"
+#   with_items: "{{ groups['docker'] }}"
+# - name: test
+#   shell: |
+#    docker exec "{{ lookup('env', 'USER') | default('omar', True) }}-target-{{ item }}" sh -c "useradd -m -p sa3tHJ3/KuYvI --shell /bin/bash {{ lookup('env', 'USER') | default('omar', True) }}"
+#   become: yes
+#   failed_when: true
+#   with_sequence: count=5
+
+- name: Setup SSH Keys in each container
+  raw: |
+      mkdir -p  {{ lookup('env', 'HOME') }}/.ssh
+      chmod 700 {{ lookup('env', 'HOME') }}/.ssh
+      chown {{ lookup('env', 'USER') | default('omar', True) }}:{{ lookup('env', 'USER') | default('omar', True) }} {{ lookup('env', 'HOME') }}/.ssh
+      echo '{{ lookup('env', 'USER') | default('omar', True) }}   ALL=(ALL) NOPASSWD: ALL'>>/etc/sudoers
+      echo '{{ sshkey_file }}' >{{ lookup('env', 'HOME') }}/.ssh/authorized_keys
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['docker'] }}"
+

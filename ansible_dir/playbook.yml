@@ -1,7 +1,8 @@
 - name: Install Node Exporter
-  hosts: all
-  become: true
+  hosts: localhost
+  connection: local
+  become: yes
+  vars:
+    sshkey_file: "{{ lookup('file', '/home/omar/.ssh/id_rsa.pub') }}"
   roles:
-  - docker
-  - docker-swarm
-  - gadget
+  - build_docker_targets
