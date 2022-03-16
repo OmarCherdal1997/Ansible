@@ -16,33 +16,31 @@
     volumes:
      - /srv/data:/srv/html
      - /sys/fs/cgroup:/sys/fs/cgroup:ro
-  with_sequence: count=5
+  with_sequence: count='{{ number_machine }}'
 - name: Add Containers to Docker group
   add_host:
     name:  "{{ lookup('env', 'USER') | default('omar', True) }}-target-{{ item }}"
     ansible_connection: docker
     groups: docker
-  with_sequence: count=5
-# - name: Create omar user in Each Container
-#   raw: useradd -m -p sa3tHJ3/KuYvI --shell /bin/bash {{ lookup('env', 'USER') | default('omar', True) }}
-#   become: yes
-#   failed_when: false
-#   delegate_to: "{{ item }}"
-#   with_items: "{{ groups['docker'] }}"
-# - name: test
-#   shell: |
-#    docker exec "{{ lookup('env', 'USER') | default('omar', True) }}-target-{{ item }}" sh -c "useradd -m -p sa3tHJ3/KuYvI --shell /bin/bash {{ lookup('env', 'USER') | default('omar', True) }}"
-#   become: yes
-#   failed_when: true
-#   with_sequence: count=5
+  with_sequence: count='{{ number_machine }}'
 
-- name: Setup SSH Keys in each container
-  raw: |
-      mkdir -p  {{ lookup('env', 'HOME') }}/.ssh
-      chmod 700 {{ lookup('env', 'HOME') }}/.ssh
-      chown {{ lookup('env', 'USER') | default('omar', True) }}:{{ lookup('env', 'USER') | default('omar', True) }} {{ lookup('env', 'HOME') }}/.ssh
-      echo '{{ lookup('env', 'USER') | default('omar', True) }}   ALL=(ALL) NOPASSWD: ALL'>>/etc/sudoers
-      echo '{{ sshkey_file }}' >{{ lookup('env', 'HOME') }}/.ssh/authorized_keys
-  delegate_to: "{{ item }}"
+- name: Run a simple command (command)
+  community.docker.docker_container_exec:
+    container: "{{ item }}"
+    argv:
+      - /bin/bash
+      - "-c"
+      -  "
+      useradd -m -p sa3tHJ3/KuYvI --shell /bin/bash {{ lookup('env', 'USER') | default('omar', True) }} &&\
+      mkdir -p  {{ lookup('env', 'HOME') }}/.ssh && \
+      chmod 700 {{ lookup('env', 'HOME') }}/.ssh && \
+      chown {{ lookup('env', 'USER') | default('omar', True) }}:{{ lookup('env', 'USER') | default('omar', True) }} {{ lookup('env', 'HOME') }}/.ssh && \
+      echo '{{ lookup('env', 'USER') | default('omar', True) }}   ALL=(ALL) NOPASSWD: ALL'>>/etc/sudoers && \
+      echo '{{ sshkey_file }}' >{{ lookup('env', 'HOME') }}/.ssh/authorized_keys && \
+      service sshd start
+      "
   with_items: "{{ groups['docker'] }}"
+  register: result
+- debug:
+    var: result
 

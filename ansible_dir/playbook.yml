@@ -1,7 +1,11 @@
-- name: Install Node Exporter
+- name: Install Swarm
   hosts: localhost
   connection: local
   become: yes
+  vars_prompt:
+    - name: number_machine
+      prompt: What is the number of hosts that you want?
+      private: no
   vars:
     sshkey_file: "{{ lookup('file', '/home/omar/.ssh/id_rsa.pub') }}"
   roles:
