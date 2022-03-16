@@ -1,0 +1,4 @@
+---
+# handlers file for roles/nfs-server
+- name: reload_nfs
+  shell: exportfs -r && /etc/init.d/nfs-kernel-server start

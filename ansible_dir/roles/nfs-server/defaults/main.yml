@@ -1,0 +1,4 @@
+---
+# defaults file for roles/nfs-server
+
+mount_directory: /exports

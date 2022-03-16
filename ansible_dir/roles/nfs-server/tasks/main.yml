@@ -1,0 +1,23 @@
+---
+# tasks file for roles/nfs-server
+- name: Install NFS packages
+  apt:
+    name: nfs-common,nfs-kernel-server
+    state: present
+    update_cache: yes
+- name: Create NFS Directory
+  file:
+    path: "{{ mount_directory }}"
+    state: directory
+    owner: root
+    group: root
+- name: Configure NFS
+  template:
+    src: exports.j2
+    dest: /etc/exports
+    owner: root
+    group: root
+    mode: 0644
+  notify: reload_nfs
+
+

@@ -1,12 +1,5 @@
 - name: Install Swarm
-  hosts: localhost
-  connection: local
+  hosts: nfs
   become: yes
-  vars_prompt:
-    - name: number_machine
-      prompt: What is the number of hosts that you want?
-      private: no
-  vars:
-    sshkey_file: "{{ lookup('file', '/home/omar/.ssh/id_rsa.pub') }}"
   roles:
-  - build_docker_targets
+  - nfs-server
