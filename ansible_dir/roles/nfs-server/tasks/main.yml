@@ -7,10 +7,12 @@
     update_cache: yes
 - name: Create NFS Directory
   file:
-    path: "{{ mount_directory }}"
+    path: "{{ mount_directory }}/{{ item }}"
     state: directory
     owner: root
     group: root
+  with_items: 
+  - "{{ mount_paths }}"
 - name: Configure NFS
   template:
     src: exports.j2

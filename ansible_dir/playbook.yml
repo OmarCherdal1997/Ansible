@@ -1,5 +1,10 @@
-- name: Install Swarm
+- name: Install NFS
   hosts: nfs
   become: yes
   roles:
   - nfs-server
+- name: Mount NFS
+  hosts: docker
+  become: yes
+  roles:
+  - nfs-client

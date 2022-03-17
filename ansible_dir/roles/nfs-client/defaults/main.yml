@@ -1,6 +1,5 @@
 ---
-# defaults file for roles/nfs-server
-
+# defaults file for roles/nfs-client
 mount_directory: /exports
 mount_paths:
   - "data"
