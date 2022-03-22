@@ -1,0 +1,5 @@
+---
+# defaults file for roles/mariadb
+
+mariadb_user_name: 'omar'
+mariadb_user_password: 'password'
